@@ -1,16 +1,18 @@
 const express = require('express');
-const socket = require('socket.io');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
-const io = socket(server);
+const server = http.createServer(app);
+const io = new Server(server);
 
 const tasks = [];
 
 io.on('connection', (socket) => {
   socket.emit('updateData', tasks);
-  socket.on('addTask', ({ taskId, taskName }) => {
-    tasks.push({ taskId, taskName });
-    socket.broadcast.emit('addTask', { taskId, taskName });
+  socket.on('addTask', (task) => {
+    tasks.push(task);
+    socket.broadcast.emit('addTask', task);
   });
   socket.on('removeTask', (taskId) => {
     const index = tasks.findIndex((e) => e.id === taskId);
@@ -21,7 +23,7 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(8000, () => {
+server.listen(8000, () => {
   console.log('Server is running on port: 8000');
 });
 
